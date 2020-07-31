@@ -17,7 +17,7 @@ urlpatterns=[
     path('follow/<str:uname>/', views.FollowUser, name='follow'),
     path('unfollow/<str:uname>/', views.unFollowUser, name='unfollow'),
     path('yourfriends/', views.yourFriends, name='yourfriends'),
-    # path('posts/', include(posts.urls), name-'posts'),
-    #path('vote/<int:pk>',views.VoteToggle.as_view() , name="upvote"),
+    path('opportunities/', views.viewOpp.as_view(), name='viewopportunities'),
+    path('readmore/<str:name>/', views.readMore, name='readmore'),
     url(r'^posts/(?P<postid>\d+)/preference/(?P<userpreference>\d+)/$',views.postpreference, name='postpreference'),
 ]

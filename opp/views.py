@@ -1,5 +1,5 @@
 
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -11,7 +11,7 @@ from django.core.validators import validate_email
 from django.contrib import auth
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
-from .models import UserProfile, Opportunites,Vote as Preference
+from .models import UserProfile, Opportunites, Vote as Preference
 from . import views
 from friendship.models import Friend, Follow, Block
 
@@ -21,7 +21,8 @@ class Login(APIView):
         return render(request, 'login.html')
 
     def post(self, request):
-        user = auth.authenticate(username=request.POST['username'], password=request.POST['password'])
+        user = auth.authenticate(
+            username=request.POST['username'], password=request.POST['password'])
         if user is not None:
             auth.login(request, user)
 
@@ -31,11 +32,11 @@ class Login(APIView):
                 if users.is_Organisation:
                   data = Opportunites.objects.all()
                   info = {'data': data}
-                  return render(request,'orgindex.html',info)
+                  return render(request, 'orgindex.html', info)
                 else:
                   alldata = Opportunites.objects.all()
                   cont = {'alldata': alldata}
-                  return render(request,'userindex.html',cont)
+                  return render(request, 'userindex.html', cont)
 
             except:
                 return render(request, 'login.html')
@@ -61,7 +62,8 @@ class SignUp(APIView):
                 user = User.objects.get(username=request.POST['username'])
                 return render(request, 'signup.html', {'error': 'Username already exists'})
             except:
-                user = User.objects.create_user(request.POST['username'], password=request.POST['password'])
+                user = User.objects.create_user(
+                    request.POST['username'], password=request.POST['password'])
                 userprofile = UserProfile(user=user, email=request.POST['email'], name=request.POST['name'],
                                           is_Organisation=False)
                 user.email = request.POST['email']
@@ -90,7 +92,8 @@ class OrganisationSignUp(APIView):
                 user = User.objects.get(username=request.POST['username'])
                 return render(request, 'orgsignup.html', {'error': 'Username already exists'})
             except:
-                user = User.objects.create_user(request.POST['username'], password=request.POST['password'])
+                user = User.objects.create_user(
+                    request.POST['username'], password=request.POST['password'])
                 userprofile = UserProfile(user=user, email=request.POST['email'], name=request.POST['name'],
                                           is_Organisation=True)
                 user.email = request.POST['email']
@@ -98,27 +101,31 @@ class OrganisationSignUp(APIView):
                 userprofile.save()
                 return redirect('login')
 
+
 def index(request):
     alldata = Opportunites.objects.all()
     context = {'alldata': alldata}
-    return render(request,"index.html",context)
+    return render(request, "index.html", context)
 
 
 def userindex(request):
     alldata = Opportunites.objects.all()
     cont = {'alldata': alldata}
-    return render(request, 'userindex.html',cont)
+    return render(request, 'userindex.html', cont)
+
 
 class logout(APIView):
     def get(self, request):
         auth.logout(request)
         return redirect('index')
 
+
 def orgindex(request):
      data = Opportunites.objects.all()
      info = {'data': data}
-     return render(request, 'orgindex.html',info)
-    
+     return render(request, 'orgindex.html', info)
+
+
 class addOpportunity(APIView):
     def get(self, request):
         opps = [
@@ -129,9 +136,9 @@ class addOpportunity(APIView):
             "STEM",
             "Sports",
             "Arts",
-            "Politics,Speech and Social Studies","Music","Visual Arts"
+            "Politics,Speech and Social Studies", "Music", "Visual Arts"
         ]
-        return render(request, 'addOpportunity.html', {"opportunities": opps,"error": "Please enter all the fields"})
+        return render(request, 'addOpportunity.html', {"opportunities": opps, "error": "Please enter all the fields"})
 
     def post(self, request):
         if request.POST['name'] and request.POST['oppurl'] and request.POST['description'] and request.POST['date'] and request.POST['category']:
@@ -145,37 +152,35 @@ class addOpportunity(APIView):
 
 @login_required(login_url='/login')
 def postpreference(request, postid, userpreference):
-        
+
         if request.method == "POST":
-                eachpost= get_object_or_404(Opportunites, id=postid)
-                obj=''
-                valueobj=''
+                eachpost = get_object_or_404(Opportunites, id=postid)
+                obj = ''
+                valueobj = ''
 
                 try:
-                        obj= Preference.objects.get(user= request.user, post= eachpost)
-                        valueobj= obj.value #value of userpreference
-                        valueobj= int(valueobj)
-                        userpreference= int(userpreference)
-                
+                        obj = Preference.objects.get(
+                            user=request.user, post=eachpost)
+                        valueobj = obj.value  # value of userpreference
+                        valueobj = int(valueobj)
+                        userpreference = int(userpreference)
+
                         if valueobj != userpreference:
                                 obj.delete()
 
+                                upref = Preference()
+                                upref.user = request.user
 
-                                upref= Preference()
-                                upref.user= request.user
+                                upref.post = eachpost
 
-                                upref.post= eachpost
-
-                                upref.value= userpreference
-
+                                upref.value = userpreference
 
                                 if userpreference == 1 and valueobj != 1:
                                         eachpost.likes = eachpost.likes + 1
-                                        eachpost.dislikes=eachpost.dislikes -1
+                                        eachpost.dislikes = eachpost.dislikes - 1
                                 elif userpreference == 2 and valueobj != 2:
                                         eachpost.dislikes += 1
                                         eachpost.likes -= 1
-                                
 
                                 upref.save()
 
@@ -183,11 +188,11 @@ def postpreference(request, postid, userpreference):
                                 alldata = Opportunites.objects.all()
                                 cont = {'alldata': alldata}
 
-                                return render (request, 'userindex.html', cont)
+                                return render(request, 'userindex.html', cont)
 
                         elif valueobj == userpreference:
                                 obj.delete()
-                        
+
                                 if userpreference == 1:
                                         eachpost.likes -= 1
                                 elif userpreference == 2:
@@ -198,53 +203,48 @@ def postpreference(request, postid, userpreference):
                                 alldata = Opportunites.objects.all()
                                 cont = {'alldata': alldata}
 
-                                return render (request, 'userindex.html', cont)
-                                
-                        
-        
-                
+                                return render(request, 'userindex.html', cont)
+
                 except Preference.DoesNotExist:
-                        upref= Preference()
+                        upref = Preference()
 
-                        upref.user= request.user
+                        upref.user = request.user
 
-                        upref.post= eachpost
+                        upref.post = eachpost
 
-                        upref.value= userpreference
+                        upref.value = userpreference
 
-                        userpreference= int(userpreference)
+                        userpreference = int(userpreference)
 
                         if userpreference == 1:
                                 eachpost.likes += 1
                         elif userpreference == 2:
-                                eachpost.dislikes +=1
+                                eachpost.dislikes += 1
 
                         upref.save()
 
-                        eachpost.save()                            
-
+                        eachpost.save()
 
                         alldata = Opportunites.objects.all()
                         cont = {'alldata': alldata}
 
-                        return render (request, 'userindex.html', cont)
-
+                        return render(request, 'userindex.html', cont)
 
         else:
-                eachpost= get_object_or_404(Post, id=postid)
+                eachpost = get_object_or_404(Post, id=postid)
                 alldata = Opportunites.objects.all()
                 cont = {'alldata': alldata}
 
-                return render (request, 'userindex.html', cont)
+                return render(request, 'userindex.html', cont)
 
 
 def FollowUser(request, uname):
     current_user = request.user
     to_user = User.objects.get(username=uname)
     print(to_user)
-    
+
     try:
-        Follow.objects.add_follower(request.user, to_user) 
+        Follow.objects.add_follower(request.user, to_user)
         friends = Follow.objects.following(request.user)
         context = {
             'friends': friends
@@ -263,6 +263,7 @@ def FollowUser(request, uname):
         }
         return render(request, 'friends.html', context)
 
+
 def unFollowUser(request, uname):
     current_user = request.user
     to_user = User.objects.get(username=uname)
@@ -273,13 +274,15 @@ def unFollowUser(request, uname):
     }
     return redirect('yourfriends')
 
+
 def yourFriends(request):
     friends = Follow.objects.following(request.user)
     context = {
         'friends': friends
     }
     return render(request, 'following_list.html', context)
-    
+
+
 @login_required()
 def allUsers(request):
     users = UserProfile.objects.exclude(user=request.user)
@@ -293,6 +296,48 @@ def allUsers(request):
     }
 
     return render(request, 'friends.html', context)
+
+
+class viewOpp(APIView):
+    def get(self, request):
+        data = Opportunites.objects.all()
+        categories = [
+                "Workshops",
+                "Applied Projects",
+                "Research",
+                "Internships",
+                "STEM",
+                "Sports",
+                "Arts",
+                "Politics,Speech and Social Studies", "Music", "Visual Arts"
+            ]
+        info = {'data': data,'categories':categories}
+        return render(request, 'viewopportunites.html', info)
+
+    def post(self, request):
+        category = request.POST['category']
+        data = Opportunites.objects.filter(category=category)
+        categories = [
+                "Workshops",
+                "Applied Projects",
+                "Research",
+                "Internships",
+                "STEM",
+                "Sports",
+                "Arts",
+                "Politics,Speech and Social Studies", "Music", "Visual Arts"
+            ]
+        context = {'data': data,'categories':categories}
+        return render(request, 'viewopportunites.html', context)
+
+
+def readMore(request, name):
+    data = Opportunites.objects.get(name=name)
+    context = {
+        'data': data,
+    }
+    return render(request, 'readmore.html', context)
+
 
 
 
